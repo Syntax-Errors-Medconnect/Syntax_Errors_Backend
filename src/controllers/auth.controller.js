@@ -1,6 +1,7 @@
 const User = require('../models/user.model');
-const { generateTokenPair, verifyRefreshToken } = require('../utils/jwt.utils');
+const { generateTokenPair, verifyRefreshToken, generateForgotPasswordToken } = require('../utils/jwt.utils');
 const config = require('../config/env');
+const { sendForgotPasswordEmail } = require('../utils/email.service');
 
 /**
  * Cookie options for tokens
@@ -382,18 +383,48 @@ const updateProfile = async (req, res, next) => {
     }
 };
 
-const changePassword = async (req, res, next) => {
+const forgotPassword = async (req, res, next) => {
     try {
-        const { currentPassword, newPassword } = req.body;
-        const userId = req.userId;
+        const { email } = req.body;
 
-        if (!currentPassword || !newPassword) {
+        if (!email) {
             return res.status(400).json({
                 success: false,
-                message: 'Please provide current password and new password',
-                code: 'MISSING_FIELDS',
+                message: 'Please provide your email',
+                code: 'MISSING_EMAIL',
             });
         }
+        
+        const user = await User.findOne({ email: email.toLowerCase() });
+        
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User with this email does not exist',
+                code: 'USER_NOT_FOUND',
+            });
+        }
+
+        const forgotToken = generateForgotPasswordToken({ userId: user._id }); 
+        
+        const resetLink = `${config.frontendUrl}/forgot-password?token=${forgotToken}`;
+
+        // Send email
+        await sendForgotPasswordEmail(user.email, resetLink);
+
+        res.status(200).json({
+            success: true,
+            message: 'Password reset email sent successfully',
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const changePassword = async (req, res, next) => {
+    try {
+        const { newPassword } = req.body;
+        const userId = req.userId;
 
         if (newPassword.length < 8) {
             return res.status(400).json({
@@ -418,15 +449,6 @@ const changePassword = async (req, res, next) => {
                 success: false,
                 message: 'Password change not available for OAuth users',
                 code: 'OAUTH_USER',
-            });
-        }
-
-        const isPasswordValid = await user.comparePassword(currentPassword);
-        if (!isPasswordValid) {
-            return res.status(401).json({
-                success: false,
-                message: 'Current password is incorrect',
-                code: 'INVALID_PASSWORD',
             });
         }
 
@@ -455,4 +477,5 @@ module.exports = {
     logoutAll,
     updateProfile,
     changePassword,
+    forgotPassword,
 };

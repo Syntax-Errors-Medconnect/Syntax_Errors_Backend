@@ -27,6 +27,14 @@ const generateRefreshToken = (payload) => {
     });
 };
 
+const generateForgotPasswordToken = (payload) => {
+    return jwt.sign(payload, config.jwt.forgotPasswordSecret, {
+        expiresIn: config.jwt.forgotPasswordExpiry,
+        issuer: 'auth-api',
+        audience: 'auth-client'
+    });
+}
+
 /**
  * Generate both access and refresh tokens
  * @param {Object} user - User object
@@ -71,6 +79,13 @@ const verifyRefreshToken = (token) => {
     });
 };
 
+const forgotPasswordToken = (token) => {
+    return jwt.verify(token, config.jwt.forgotPasswordSecret, {
+        issuer: 'auth-api',
+        audience: 'auth-client',
+    });
+}
+
 /**
  * Decode a token without verification (for debugging)
  * @param {string} token - JWT token
@@ -91,4 +106,6 @@ module.exports = {
     verifyAccessToken,
     verifyRefreshToken,
     decodeToken,
+    generateForgotPasswordToken,
+    forgotPasswordToken,
 };

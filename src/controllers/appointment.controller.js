@@ -9,7 +9,7 @@ const { sendAppointmentAcceptedEmail } = require('../utils/email.service');
  */
 const createAppointment = async (req, res) => {
     try {
-        const { doctorId, requestedDate, message } = req.body;
+        const { doctorId, requestedDate, requestedTime, message } = req.body;
 
         // Validation
         if (!doctorId || !requestedDate) {
@@ -46,6 +46,7 @@ const createAppointment = async (req, res) => {
             patientId: req.userId,
             doctorId,
             requestedDate,
+            requestedTime: requestedTime || '',
             message: message || '',
         });
 
@@ -65,6 +66,7 @@ const createAppointment = async (req, res) => {
                     doctorName: appointment.doctorId.name,
                     status: appointment.status,
                     requestedDate: appointment.requestedDate,
+                    requestedTime: appointment.requestedTime,
                     message: appointment.message,
                     createdAt: appointment.createdAt,
                 },
@@ -110,6 +112,7 @@ const getDoctorAppointments = async (req, res) => {
                 doctorName: apt.doctorId.name,
                 status: apt.status,
                 requestedDate: apt.requestedDate,
+                requestedTime: apt.requestedTime || '',
                 message: apt.message,
                 createdAt: apt.createdAt,
             }));
@@ -159,6 +162,7 @@ const getPatientAppointments = async (req, res) => {
                 doctorName: apt.doctorId.name,
                 status: apt.status,
                 requestedDate: apt.requestedDate,
+                requestedTime: apt.requestedTime || '',
                 message: apt.message,
                 createdAt: apt.createdAt,
             }));

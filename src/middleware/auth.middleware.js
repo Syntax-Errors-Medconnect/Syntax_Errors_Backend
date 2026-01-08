@@ -1,4 +1,4 @@
-const { verifyAccessToken } = require('../utils/jwt.utils');
+const { verifyAccessToken, forgotPasswordToken } = require('../utils/jwt.utils');
 const User = require('../models/user.model');
 
 /**
@@ -14,7 +14,7 @@ const authenticate = async (req, res, next) => {
             return res.status(401).json({
                 success: false,
                 message: 'Access denied. No token provided.',
-                code: 'NO_TOKEN',
+                code: 'NO_TOKEN2',
             });
         }
 
@@ -97,7 +97,54 @@ const optionalAuth = async (req, res, next) => {
     }
 };
 
+const authenticateForgotPassword = async (req, res, next) => {
+    try {
+        console.log('Authenticate forgot password middleware triggered');
+        const { token } = req.body;
+
+        console.log('Forgot password token:', req.body);
+        if (!token) {
+            return res.status(401).json({
+                success: false,
+                message: 'Access denied. No token provided.',
+                code: 'NO_TOKEN1',
+            });
+        }
+
+        const decoded = forgotPasswordToken(token);
+
+        const user = await User.findById(decoded.userId);
+
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: 'User not found.',
+                code: 'USER_NOT_FOUND',
+            });
+        }
+        if (!user.isActive) {
+            return res.status(401).json({
+                success: false,
+                message: 'User account is deactivated.',
+                code: 'ACCOUNT_DEACTIVATED',
+            });
+        }
+        
+        req.user = user;
+        req.userId = decoded.userId;
+        next();
+    } catch (error) {
+        console.error('Auth middleware error:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Authentication error.',
+            code: 'AUTH_ERROR',
+        });
+    }
+};
+
 module.exports = {
     authenticate,
     optionalAuth,
+    authenticateForgotPassword,
 };

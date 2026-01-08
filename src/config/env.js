@@ -9,6 +9,8 @@ module.exports = {
         refreshSecret: process.env.JWT_REFRESH_SECRET,
         accessExpiry: process.env.JWT_ACCESS_EXPIRY || '15m',
         refreshExpiry: process.env.JWT_REFRESH_EXPIRY || '7d',
+        forgotPasswordSecret: process.env.JWT_FORGOT_PASSWORD_SECRET,
+        forgotPasswordExpiry: process.env.JWT_FORGOT_PASSWORD_EXPIRY || '1h',
     },
     google: {
         clientId: process.env.GOOGLE_CLIENT_ID,

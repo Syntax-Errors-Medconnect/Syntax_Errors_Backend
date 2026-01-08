@@ -485,6 +485,94 @@ const getDoctorAccountCreationEmailTemplate = (doctorEmail, tempPassword) => {
     `;
 };
 
+const getForgotPasswordEmailTemplate = (resetLink) => {
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+            padding: 24px 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 22px;
+        }
+        .content { padding: 24px 30px; }
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #3b82f6;
+            color: #ffffff !important;
+            text-decoration: none;
+            border-radius: 6px;
+            margin: 10px 0 20px 0;
+            text-align: center;
+        }
+        .note {
+            background: #f3f4f6;
+            padding: 12px;
+            border-radius: 6px;
+            color: #4b5563;
+            font-size: 14px;
+        }
+        .footer {
+            background: #f8f9fa;
+            padding: 16px 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #6b7280;
+        }
+        a { color: #1d4ed8; }
+    </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>Reset Your Password</h1>
+            </div>
+            <div class="content">
+                <p>We received a request to reset your password.</p>
+                <p>Click the button below to set a new password:</p>
+                <div style="text-align:center">
+                    <a class="button" href="${resetLink}" target="_blank" rel="noopener">Reset Password</a>
+                </div>
+                <p>If the button doesn't work, copy and paste this link into your browser:</p>
+                <p><a href="${resetLink}" target="_blank" rel="noopener">${resetLink}</a></p>
+                <div class="note">
+                    If you didn't request this, you can safely ignore this email.
+                </div>
+            </div>
+            <div class="footer">
+                This is an automated message from Clinical Visit Management System. Please do not reply.
+            </div>
+        </div>
+    </body>
+    </html>
+    `;
+};
+
 /**
  * Send appointment accepted notification to both doctor and patient
  * @param {string} doctorEmail - Doctor's email address
@@ -577,7 +665,42 @@ const sendCreateDoctorAccountEmail = async (doctorEmail, tempPassword) => {
     }
 };
 
+const sendForgotPasswordEmail = async (userEmail, resetLink) => {
+    if (!transporter) {
+        console.log('📧 Email would be sent (not configured):');
+        console.log(`   To User: ${userEmail}`)
+        console.log(`   Reset Link: ${resetLink}`)
+        return {
+            success: false,
+            message: 'Email not configured',
+        }
+    }
+
+    try {
+        const mailOptions = {
+            from: process.env.DEFAULT_FROM_EMAIL,
+            to: userEmail,
+            subject: 'Password Reset Request',
+            html: getForgotPasswordEmailTemplate(resetLink),
+        };
+
+        console.log(mailOptions);
+
+        const emailResult = await transporter.sendMail(mailOptions);
+        console.log('✅ Forgot password email sent to user:', userEmail);
+
+        return {
+            success: true,
+            emailId: emailResult.messageId,
+        };
+    } catch (error) {
+        console.error('❌ Failed to send forgot password email:', error.message);
+        throw error;
+    }
+};
+
 module.exports = {
     sendAppointmentAcceptedEmail,
     sendCreateDoctorAccountEmail,
+    sendForgotPasswordEmail,
 };

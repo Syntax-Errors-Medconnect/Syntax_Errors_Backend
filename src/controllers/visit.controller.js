@@ -101,10 +101,36 @@ const createVisitSummary = async (req, res) => {
  */
 const getDoctorPatients = async (req, res) => {
     try {
-        // Get patients assigned to this doctor
-        const patients = await User.find({
+        const doctorId = req.userId;
+
+        // Get patients from visits
+        const visitedPatientIds = await VisitSummary.distinct('patientId', { doctorId });
+
+        // Get patients from accepted appointments
+        const Appointment = require('../models/appointment.model');
+        const appointmentPatientIds = await Appointment.distinct('patientId', {
+            doctorId,
+            status: 'accepted',
+        });
+
+        // Get patients with assignedDoctor
+        const assignedPatients = await User.find({
             role: 'patient',
-            assignedDoctor: req.userId,
+            assignedDoctor: doctorId,
+        }).select('_id');
+        const assignedPatientIds = assignedPatients.map(p => p._id.toString());
+
+        // Combine and deduplicate all patient IDs
+        const allPatientIds = [...new Set([
+            ...visitedPatientIds.map(id => id.toString()),
+            ...appointmentPatientIds.map(id => id.toString()),
+            ...assignedPatientIds,
+        ])];
+
+        // Fetch patient details
+        const patients = await User.find({
+            _id: { $in: allPatientIds },
+            role: 'patient',
         }).select('name email');
 
         // Get visit counts for each patient (from this doctor)
@@ -112,7 +138,7 @@ const getDoctorPatients = async (req, res) => {
             patients.map(async (patient) => {
                 const visits = await VisitSummary.find({
                     patientId: patient._id,
-                    doctorId: req.userId,
+                    doctorId: doctorId,
                 }).sort({ visitDate: -1 });
 
                 return {
@@ -301,7 +327,7 @@ const getPatientVisitsById = async (req, res) => {
     try {
         const { patientId } = req.params;
 
-        // Verify patient exists and is assigned to this doctor
+        // Verify patient exists
         const patient = await User.findById(patientId);
         if (!patient || patient.role !== 'patient') {
             return res.status(404).json({
@@ -310,11 +336,16 @@ const getPatientVisitsById = async (req, res) => {
             });
         }
 
-        // Check if patient is assigned to this doctor
-        if (!patient.assignedDoctor || patient.assignedDoctor.toString() !== req.userId) {
+        // Check if doctor has access to this patient (assigned, has visits, or has accepted appointment)
+        const isAssigned = patient.assignedDoctor && patient.assignedDoctor.toString() === req.userId;
+        const hasVisits = await VisitSummary.exists({ patientId, doctorId: req.userId });
+        const Appointment = require('../models/appointment.model');
+        const hasAppointment = await Appointment.exists({ patientId, doctorId: req.userId, status: 'accepted' });
+
+        if (!isAssigned && !hasVisits && !hasAppointment) {
             return res.status(403).json({
                 success: false,
-                message: 'Access denied. This patient is not assigned to you.',
+                message: 'Access denied. You do not have access to this patient.',
             });
         }
 

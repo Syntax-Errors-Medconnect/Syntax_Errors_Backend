@@ -60,8 +60,8 @@ const generateToken = async (req, res) => {
             });
         }
 
-        // Generate token for this user
-        const token = generateAgoraToken(videoCall.channelName, req.userId);
+        // Generate token for this user (use 0 for auto-generated UID)
+        const token = generateAgoraToken(videoCall.channelName, 0);
 
         res.status(200).json({
             success: true,
@@ -69,7 +69,7 @@ const generateToken = async (req, res) => {
                 token,
                 channelName: videoCall.channelName,
                 appId: process.env.AGORA_APP_ID,
-                uid: req.userId,
+                uid: 0, // Let Agora auto-generate unique UID
                 videoCallId: videoCall._id,
             },
         });
@@ -139,6 +139,7 @@ const startCall = async (req, res) => {
 const endCall = async (req, res) => {
     try {
         const { id } = req.params;
+        const { transcription } = req.body; // Accept transcription data
 
         const videoCall = await VideoCall.findById(id);
         if (!videoCall) {
@@ -169,6 +170,12 @@ const endCall = async (req, res) => {
             videoCall.duration = Math.floor(durationMs / 1000); // Convert to seconds
         }
 
+        // Save transcription if provided
+        if (transcription && Array.isArray(transcription)) {
+            videoCall.transcriptionText = transcription;
+            console.log(`📝 Saved transcription with ${transcription.length} segments`);
+        }
+
         await videoCall.save();
 
         res.status(200).json({
@@ -181,6 +188,7 @@ const endCall = async (req, res) => {
                     duration: videoCall.duration,
                     startTime: videoCall.startTime,
                     endTime: videoCall.endTime,
+                    hasTranscription: videoCall.transcriptionText.length > 0,
                 },
             },
         });

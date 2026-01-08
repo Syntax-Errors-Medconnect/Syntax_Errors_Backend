@@ -9,8 +9,9 @@ const {
     logoutAll,
     updateProfile,
     changePassword,
+    forgotPassword,
 } = require('../controllers/auth.controller');
-const { authenticate } = require('../middleware/auth.middleware');
+const { authenticate, authenticateForgotPassword } = require('../middleware/auth.middleware');
 
 router.post('/register', register);
 router.post('/login', login);
@@ -20,6 +21,7 @@ router.post('/logout', authenticate, logout);
 router.post('/logout-all', authenticate, logoutAll);
 router.get('/me', authenticate, getMe);
 router.put('/profile', authenticate, updateProfile);
-router.put('/change-password', authenticate, changePassword);
+router.put('/change-password', authenticateForgotPassword, changePassword);
+router.post('/forgot-password', forgotPassword);
 
 module.exports = router;
