@@ -8,6 +8,7 @@ const oauthRoutes = require('./routes/oauth.routes');
 const visitRoutes = require('./routes/visit.routes');
 const aiRoutes = require('./routes/ai.routes');
 const appointmentRoutes = require('./routes/appointment.routes');
+const chatRoutes = require('./routes/chat.routes');
 const passport = require('./config/passport');
 const { errorHandler, notFound } = require('./middleware/error.middleware');
 const connectDB = require('./config/db');
@@ -96,6 +97,14 @@ app.use('/api/ai', aiRoutes);
 // PUT /api/appointments/:id/accept - Accept appointment (doctor)
 // PUT /api/appointments/:id/reject - Reject appointment (doctor)
 app.use('/api/appointments', appointmentRoutes);
+
+// Chat routes
+// POST /api/chat/sessions - Create chat session
+// GET /api/chat/sessions - List user's sessions
+// GET /api/chat/sessions/:id/messages - Get messages
+// POST /api/chat/sessions/:id/messages - Send message
+// DELETE /api/chat/sessions/:id - Delete session
+app.use('/api/chat', chatRoutes);
 
 // 404 handler
 app.use(notFound);
