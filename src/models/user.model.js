@@ -43,6 +43,12 @@ const userSchema = new mongoose.Schema(
         profilePicture: {
             type: String,
         },
+        role: {
+            type: String,
+            enum: ['doctor', 'patient'],
+            default: 'patient',
+            required: true
+        },
         refreshTokens: [
             {
                 token: {
