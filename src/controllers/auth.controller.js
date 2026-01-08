@@ -44,7 +44,7 @@ const clearAuthCookies = (res) => {
  */
 const register = async (req, res, next) => {
     try {
-        const { name, email, password } = req.body;
+        const { name, email, password, role } = req.body;
 
         // Validate input
         if (!name || !email || !password) {
@@ -52,6 +52,15 @@ const register = async (req, res, next) => {
                 success: false,
                 message: 'Please provide name, email, and password',
                 code: 'MISSING_FIELDS',
+            });
+        }
+
+        // Validate role
+        if (!role || !['doctor', 'patient'].includes(role)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Please select a valid role (doctor or patient)',
+                code: 'INVALID_ROLE',
             });
         }
 
@@ -65,11 +74,12 @@ const register = async (req, res, next) => {
             });
         }
 
-        // Create new user
+        // Create new user with role
         const user = await User.create({
             name,
             email: email.toLowerCase(),
             password,
+            role,
         });
 
         // Generate tokens

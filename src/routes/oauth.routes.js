@@ -5,15 +5,24 @@ const { googleCallback, oauthFailure } = require('../controllers/oauth.controlle
 
 /**
  * @route   GET /api/oauth/google
- * @desc    Initiate Google OAuth
+ * @desc    Initiate Google OAuth with role selection
  * @access  Public
+ * @query   role - 'doctor' or 'patient' (required)
  */
-router.get(
-    '/google',
+router.get('/google', (req, res, next) => {
+    const { role } = req.query;
+
+    // Validate role
+    if (!role || !['doctor', 'patient'].includes(role)) {
+        return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/register?error=role_required`);
+    }
+
+    // Pass role through OAuth state parameter
     passport.authenticate('google', {
         scope: ['profile', 'email'],
-    })
-);
+        state: role, // Pass role as state
+    })(req, res, next);
+});
 
 /**
  * @route   GET /api/oauth/google/callback

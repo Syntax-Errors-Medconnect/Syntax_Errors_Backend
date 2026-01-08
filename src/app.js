@@ -5,6 +5,8 @@ const session = require('express-session');
 const config = require('./config/env');
 const authRoutes = require('./routes/auth.routes');
 const oauthRoutes = require('./routes/oauth.routes');
+const visitRoutes = require('./routes/visit.routes');
+const aiRoutes = require('./routes/ai.routes');
 const passport = require('./config/passport');
 const { errorHandler, notFound } = require('./middleware/error.middleware');
 
@@ -66,17 +68,23 @@ app.get('/health', (req, res) => {
     });
 });
 
-// API routes
-app.use('/api/auth', authRoutes);
-const visitRoutes = require('./routes/visit.routes');
-const aiRoutes = require('./routes/ai.routes');
+// ====================================
+// API ROUTES
+// ====================================
 
-// ... (other imports)
-
-// API routes
+// Authentication routes
 app.use('/api/auth', authRoutes);
 app.use('/api/oauth', oauthRoutes);
+
+// Clinical Visit Summary routes (matches spec exactly)
+// POST /api/visit-summary - Create visit (doctor only)
+// GET /api/doctor/patients - List patients (doctor only)
+// GET /api/patient/visits - List own visits (patient only)
+// GET /api/visit-summary/:id - Get specific visit
 app.use('/api', visitRoutes);
+
+// AI routes
+// POST /api/ai/retrieve-summary - AI retrieval (doctor only)
 app.use('/api/ai', aiRoutes);
 
 // 404 handler

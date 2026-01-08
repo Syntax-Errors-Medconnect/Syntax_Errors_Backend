@@ -1,10 +1,10 @@
-const OpenAI = require('openai');
+const Groq = require('groq-sdk');
 const VisitSummary = require('../models/visitSummary.model');
 const User = require('../models/user.model');
 
-// Initialize OpenAI only if key exists
-const openai = process.env.OPENAI_API_KEY
-    ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+// Initialize Groq only if key exists
+const groq = process.env.GROQ_API_KEY
+    ? new Groq({ apiKey: process.env.GROQ_API_KEY })
     : null;
 
 /**
@@ -50,12 +50,12 @@ const retrieveSummary = async (req, res) => {
         ).join('\n\n---\n\n');
 
         // 4. Call AI (or Mock if no key)
-        if (!openai) {
-            console.warn('OPENAI_API_KEY not found. Returning mock response.');
+        if (!groq) {
+            console.warn('GROQ_API_KEY not found. Returning mock response.');
             return res.status(200).json({
                 success: true,
                 answer: "AI Service Unavailable (Missing API Key). However, here is the raw data matching your query: [Mock Extraction]",
-                debug_note: "Configure OPENAI_API_KEY in .env to enable real extraction."
+                debug_note: "Configure GROQ_API_KEY in .env to enable real extraction."
             });
         }
 
@@ -73,8 +73,8 @@ CONTEXT:
 ${contextText}
         `;
 
-        const completion = await openai.chat.completions.create({
-            model: "gpt-3.5-turbo", // Efficient for retrieval
+        const completion = await groq.chat.completions.create({
+            model: "llama-3.3-70b-versatile", // Fast and capable Groq model
             messages: [
                 { role: "system", content: systemPrompt },
                 { role: "user", content: `Query: ${query}` }

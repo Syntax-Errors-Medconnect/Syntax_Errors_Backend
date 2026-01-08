@@ -25,14 +25,21 @@ passport.use(
             clientID: config.google.clientId,
             clientSecret: config.google.clientSecret,
             callbackURL: config.google.callbackUrl,
+            passReqToCallback: true, // Pass request to callback to access state
         },
-        async (accessToken, refreshToken, profile, done) => {
+        async (req, accessToken, refreshToken, profile, done) => {
             try {
+                // Get role from OAuth state parameter
+                const role = req.query.state || 'patient'; // Default to patient if not specified
+
+                // Validate role
+                const validRole = ['doctor', 'patient'].includes(role) ? role : 'patient';
+
                 // Check if user already exists with this Google ID
                 let user = await User.findOne({ googleId: profile.id });
 
                 if (user) {
-                    // User exists, return user
+                    // User exists, return user (don't change role for existing users)
                     return done(null, user);
                 }
 
@@ -41,7 +48,7 @@ passport.use(
                 user = await User.findOne({ email: email.toLowerCase() });
 
                 if (user) {
-                    // Link Google account to existing user
+                    // Link Google account to existing user (keep existing role)
                     user.googleId = profile.id;
                     user.authProvider = 'google';
                     user.profilePicture = profile.photos[0]?.value || null;
@@ -49,13 +56,14 @@ passport.use(
                     return done(null, user);
                 }
 
-                // Create new user
+                // Create new user with selected role
                 user = await User.create({
                     googleId: profile.id,
                     name: profile.displayName,
                     email: email.toLowerCase(),
                     authProvider: 'google',
                     profilePicture: profile.photos[0]?.value || null,
+                    role: validRole, // Set role from OAuth state
                     isActive: true,
                 });
 

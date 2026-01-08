@@ -49,6 +49,11 @@ const userSchema = new mongoose.Schema(
             default: 'patient',
             required: true
         },
+        assignedDoctor: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+            default: null, // Patients can assign themselves to a doctor
+        },
         refreshTokens: [
             {
                 token: {
