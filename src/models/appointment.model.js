@@ -18,7 +18,7 @@ const appointmentSchema = new mongoose.Schema(
             default: 'pending',
         },
         requestedDate: {
-            type: Date,
+            type: String,
             required: [true, 'Requested date is required'],
         },
         requestedTime: {
