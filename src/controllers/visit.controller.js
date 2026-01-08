@@ -263,6 +263,8 @@ const getDoctorVisits = async (req, res) => {
  */
 const getDoctors = async (req, res) => {
     try {
+
+        console.log('Fetching doctors for patient:', req.userId);
         const doctors = await User.find({ role: 'doctor' })
             .select('name email profilePicture');
 

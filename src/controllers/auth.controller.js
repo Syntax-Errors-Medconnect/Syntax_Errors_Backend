@@ -157,7 +157,7 @@ const login = async (req, res, next) => {
 
         // Generate tokens
         const { accessToken, refreshToken } = generateTokenPair(user);
-
+        console.log('Generated Tokens:', { accessToken, refreshToken });
         // Store refresh token in database
         await user.addRefreshToken(refreshToken);
 
