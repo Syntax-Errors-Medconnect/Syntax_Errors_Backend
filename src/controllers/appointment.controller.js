@@ -99,18 +99,21 @@ const getDoctorAppointments = async (req, res) => {
             .populate('doctorId', 'name email')
             .sort({ createdAt: -1 });
 
-        const formattedAppointments = appointments.map((apt) => ({
-            _id: apt._id,
-            patientId: apt.patientId._id,
-            patientName: apt.patientId.name,
-            patientEmail: apt.patientId.email,
-            doctorId: apt.doctorId._id,
-            doctorName: apt.doctorId.name,
-            status: apt.status,
-            requestedDate: apt.requestedDate,
-            message: apt.message,
-            createdAt: apt.createdAt,
-        }));
+        // Filter out appointments where patient or doctor was deleted
+        const formattedAppointments = appointments
+            .filter((apt) => apt.patientId && apt.doctorId)
+            .map((apt) => ({
+                _id: apt._id,
+                patientId: apt.patientId._id,
+                patientName: apt.patientId.name,
+                patientEmail: apt.patientId.email,
+                doctorId: apt.doctorId._id,
+                doctorName: apt.doctorId.name,
+                status: apt.status,
+                requestedDate: apt.requestedDate,
+                message: apt.message,
+                createdAt: apt.createdAt,
+            }));
 
         // Count pending for badge
         const pendingCount = await Appointment.countDocuments({
@@ -147,17 +150,21 @@ const getPatientAppointments = async (req, res) => {
             .populate('patientId', 'name email')
             .sort({ createdAt: -1 });
 
-        const formattedAppointments = appointments.map((apt) => ({
-            _id: apt._id,
-            patientId: apt.patientId._id,
-            patientName: apt.patientId.name,
-            doctorId: apt.doctorId._id,
-            doctorName: apt.doctorId.name,
-            status: apt.status,
-            requestedDate: apt.requestedDate,
-            message: apt.message,
-            createdAt: apt.createdAt,
-        }));
+        // Filter out appointments where doctor or patient was deleted
+        // and format the remaining ones
+        const formattedAppointments = appointments
+            .filter((apt) => apt.doctorId && apt.patientId) // Only keep appointments with valid references
+            .map((apt) => ({
+                _id: apt._id,
+                patientId: apt.patientId._id,
+                patientName: apt.patientId.name,
+                doctorId: apt.doctorId._id,
+                doctorName: apt.doctorId.name,
+                status: apt.status,
+                requestedDate: apt.requestedDate,
+                message: apt.message,
+                createdAt: apt.createdAt,
+            }));
 
         res.status(200).json({
             success: true,
