@@ -6,6 +6,7 @@ const {
     createVisitSummary,
     getDoctorPatients,
     getPatientVisits,
+    getPatientVisitsById,
     getVisitSummaryById,
     getDoctorVisits,
     getDoctors,
@@ -50,6 +51,17 @@ router.get(
     '/doctor/visits',
     authorize('doctor'),
     getDoctorVisits
+);
+
+/**
+ * @route   GET /api/doctor/patients/:patientId/visits
+ * @desc    Get visits for a specific patient (doctor only)
+ * @access  Doctor
+ */
+router.get(
+    '/doctor/patients/:patientId/visits',
+    authorize('doctor'),
+    getPatientVisitsById
 );
 
 // ============================================

@@ -7,6 +7,7 @@ const authRoutes = require('./routes/auth.routes');
 const oauthRoutes = require('./routes/oauth.routes');
 const visitRoutes = require('./routes/visit.routes');
 const aiRoutes = require('./routes/ai.routes');
+const appointmentRoutes = require('./routes/appointment.routes');
 const passport = require('./config/passport');
 const { errorHandler, notFound } = require('./middleware/error.middleware');
 
@@ -86,6 +87,14 @@ app.use('/api', visitRoutes);
 // AI routes
 // POST /api/ai/retrieve-summary - AI retrieval (doctor only)
 app.use('/api/ai', aiRoutes);
+
+// Appointment routes
+// POST /api/appointments - Create appointment (patient)
+// GET /api/appointments/doctor - Doctor's appointments
+// GET /api/appointments/patient - Patient's appointments
+// PUT /api/appointments/:id/accept - Accept appointment (doctor)
+// PUT /api/appointments/:id/reject - Reject appointment (doctor)
+app.use('/api/appointments', appointmentRoutes);
 
 // 404 handler
 app.use(notFound);

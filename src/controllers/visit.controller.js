@@ -257,6 +257,68 @@ const getDoctorVisits = async (req, res) => {
 };
 
 /**
+ * @desc    Get visits for a specific patient (doctor only)
+ * @route   GET /api/doctor/patients/:patientId/visits
+ * @access  Doctor only
+ */
+const getPatientVisitsById = async (req, res) => {
+    try {
+        const { patientId } = req.params;
+
+        // Verify patient exists and is assigned to this doctor
+        const patient = await User.findById(patientId);
+        if (!patient || patient.role !== 'patient') {
+            return res.status(404).json({
+                success: false,
+                message: 'Patient not found',
+            });
+        }
+
+        // Check if patient is assigned to this doctor
+        if (!patient.assignedDoctor || patient.assignedDoctor.toString() !== req.userId) {
+            return res.status(403).json({
+                success: false,
+                message: 'Access denied. This patient is not assigned to you.',
+            });
+        }
+
+        const visits = await VisitSummary.find({
+            patientId: patientId,
+            doctorId: req.userId,
+        })
+            .populate('patientId', 'name email')
+            .populate('doctorId', 'name email')
+            .sort({ visitDate: -1 });
+
+        const formattedVisits = visits.map((visit) => ({
+            _id: visit._id,
+            patientId: visit.patientId._id,
+            patientName: visit.patientId.name,
+            doctorId: visit.doctorId._id,
+            doctorName: visit.doctorId.name,
+            visitDate: visit.visitDate,
+            summary: visit.summaryText,
+            createdAt: visit.createdAt,
+            updatedAt: visit.updatedAt,
+        }));
+
+        res.status(200).json({
+            success: true,
+            data: {
+                visits: formattedVisits,
+                total: formattedVisits.length,
+            },
+        });
+    } catch (error) {
+        console.error('Get patient visits by ID error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch patient visits',
+        });
+    }
+};
+
+/**
  * @desc    Get all doctors in the system
  * @route   GET /api/doctors
  * @access  Patient only
@@ -356,6 +418,7 @@ module.exports = {
     createVisitSummary,
     getDoctorPatients,
     getPatientVisits,
+    getPatientVisitsById,
     getVisitSummaryById,
     getDoctorVisits,
     getDoctors,
