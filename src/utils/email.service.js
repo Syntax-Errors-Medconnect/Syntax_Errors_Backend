@@ -1,0 +1,353 @@
+const transporter = require('../config/email.config');
+
+/**
+ * Email service for sending appointment notifications
+ */
+
+/**
+ * Generate HTML email template for doctor
+ */
+const getDoctorEmailTemplate = (appointmentDetails) => {
+    const { patientName, appointmentDate, message } = appointmentDetails;
+    const formattedDate = new Date(appointmentDate).toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+    });
+
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .content {
+            padding: 30px;
+        }
+        .appointment-card {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .detail-row {
+            margin: 10px 0;
+        }
+        .label {
+            font-weight: 600;
+            color: #667eea;
+            display: inline-block;
+            width: 120px;
+        }
+        .value {
+            color: #333;
+        }
+        .message-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #6c757d;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🩺 New Appointment Confirmed</h1>
+        </div>
+        <div class="content">
+            <p>Dear Doctor,</p>
+            <p>You have successfully accepted an appointment request. Here are the details:</p>
+            
+            <div class="appointment-card">
+                <div class="detail-row">
+                    <span class="label">Patient Name:</span>
+                    <span class="value">${patientName}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">Appointment Date:</span>
+                    <span class="value">${formattedDate}</span>
+                </div>
+            </div>
+
+            ${message ? `
+            <div class="message-box">
+                <strong>Patient's Message:</strong>
+                <p style="margin: 10px 0 0 0;">${message}</p>
+            </div>
+            ` : ''}
+
+            <p>Please ensure you're available at the scheduled time. You can now create visit summaries for this patient.</p>
+            
+            <p style="margin-top: 30px;">
+                <strong>Next Steps:</strong>
+            </p>
+            <ul>
+                <li>Review patient's medical history if available</li>
+                <li>Prepare necessary documentation</li>
+                <li>Create visit summary after the appointment</li>
+            </ul>
+        </div>
+        <div class="footer">
+            <p>This is an automated message from Clinical Visit Management System</p>
+            <p>Please do not reply to this email</p>
+        </div>
+    </div>
+</body>
+</html>
+    `;
+};
+
+/**
+ * Generate HTML email template for patient
+ */
+const getPatientEmailTemplate = (appointmentDetails) => {
+    const { doctorName, appointmentDate, message } = appointmentDetails;
+    const formattedDate = new Date(appointmentDate).toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+    });
+
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .content {
+            padding: 30px;
+        }
+        .success-badge {
+            background: #d1fae5;
+            color: #065f46;
+            padding: 10px 20px;
+            border-radius: 20px;
+            display: inline-block;
+            margin: 10px 0;
+            font-weight: 600;
+        }
+        .appointment-card {
+            background: #f8f9fa;
+            border-left: 4px solid #10b981;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .detail-row {
+            margin: 10px 0;
+        }
+        .label {
+            font-weight: 600;
+            color: #10b981;
+            display: inline-block;
+            width: 120px;
+        }
+        .value {
+            color: #333;
+        }
+        .info-box {
+            background: #e0f2fe;
+            border-left: 4px solid #0284c7;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>✅ Appointment Confirmed!</h1>
+        </div>
+        <div class="content">
+            <div style="text-align: center;">
+                <span class="success-badge">Your appointment has been accepted</span>
+            </div>
+            
+            <p>Dear Patient,</p>
+            <p>Great news! Your appointment request has been accepted by the doctor.</p>
+            
+            <div class="appointment-card">
+                <div class="detail-row">
+                    <span class="label">Doctor Name:</span>
+                    <span class="value">Dr. ${doctorName}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">Appointment Date:</span>
+                    <span class="value">${formattedDate}</span>
+                </div>
+            </div>
+
+            ${message ? `
+            <div class="info-box">
+                <strong>Your Message to Doctor:</strong>
+                <p style="margin: 10px 0 0 0;">${message}</p>
+            </div>
+            ` : ''}
+
+            <p style="margin-top: 30px;">
+                <strong>Important Reminders:</strong>
+            </p>
+            <ul>
+                <li>Please arrive 10 minutes before your scheduled time</li>
+                <li>Bring any relevant medical documents or test results</li>
+                <li>Prepare a list of questions or concerns you'd like to discuss</li>
+                <li>If you need to reschedule, please contact us as soon as possible</li>
+            </ul>
+
+            <p>You can view your appointment details and visit history by logging into your account.</p>
+        </div>
+        <div class="footer">
+            <p>This is an automated message from Clinical Visit Management System</p>
+            <p>Please do not reply to this email</p>
+        </div>
+    </div>
+</body>
+</html>
+    `;
+};
+
+/**
+ * Send appointment accepted notification to both doctor and patient
+ * @param {string} doctorEmail - Doctor's email address
+ * @param {string} patientEmail - Patient's email address
+ * @param {object} appointmentDetails - Appointment details
+ * @returns {Promise<object>} - Email sending results
+ */
+const sendAppointmentAcceptedEmail = async (doctorEmail, patientEmail, appointmentDetails) => {
+    // If transporter is not configured, log to console
+    if (!transporter) {
+        console.log('📧 Email would be sent (not configured):');
+        console.log(`   To Doctor: ${doctorEmail}`);
+        console.log(`   To Patient: ${patientEmail}`);
+        console.log(`   Appointment: ${appointmentDetails.patientName} with Dr. ${appointmentDetails.doctorName}`);
+        return {
+            success: false,
+            message: 'Email not configured',
+        };
+    }
+
+    const fromAddress = process.env.EMAIL_FROM_ADDRESS || process.env.EMAIL_USER;
+    const fromName = process.env.EMAIL_FROM_NAME || 'Clinical Visit System';
+
+    try {
+        // Send email to doctor
+        const doctorEmailResult = await transporter.sendMail({
+            from: `"${fromName}" <${fromAddress}>`,
+            to: doctorEmail,
+            subject: `New Appointment Confirmed - ${appointmentDetails.patientName}`,
+            html: getDoctorEmailTemplate(appointmentDetails),
+        });
+
+        console.log('✅ Email sent to doctor:', doctorEmail);
+
+        // Send email to patient
+        const patientEmailResult = await transporter.sendMail({
+            from: `"${fromName}" <${fromAddress}>`,
+            to: patientEmail,
+            subject: `Appointment Confirmed with Dr. ${appointmentDetails.doctorName}`,
+            html: getPatientEmailTemplate(appointmentDetails),
+        });
+
+        console.log('✅ Email sent to patient:', patientEmail);
+
+        return {
+            success: true,
+            doctorEmailId: doctorEmailResult.messageId,
+            patientEmailId: patientEmailResult.messageId,
+        };
+    } catch (error) {
+        console.error('❌ Failed to send appointment emails:', error.message);
+        throw error;
+    }
+};
+
+module.exports = {
+    sendAppointmentAcceptedEmail,
+};

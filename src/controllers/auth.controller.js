@@ -7,16 +7,16 @@ const config = require('../config/env');
  */
 const getAccessCookieOptions = () => ({
     httpOnly: true,
-    secure: config.isProduction,
-    sameSite: config.isProduction ? 'strict' : 'lax',
+    secure: true,
+    sameSite: 'none',
     maxAge: 15 * 60 * 1000, // 15 minutes
     path: '/',
 });
 
 const getRefreshCookieOptions = () => ({
     httpOnly: true,
-    secure: config.isProduction,
-    sameSite: config.isProduction ? 'strict' : 'lax',
+    secure: true,
+    sameSite: 'none',
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     path: '/',
 });
@@ -157,7 +157,6 @@ const login = async (req, res, next) => {
 
         // Generate tokens
         const { accessToken, refreshToken } = generateTokenPair(user);
-
         // Store refresh token in database
         await user.addRefreshToken(refreshToken);
 

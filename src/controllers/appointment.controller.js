@@ -1,5 +1,6 @@
 const Appointment = require('../models/appointment.model');
 const User = require('../models/user.model');
+const { sendAppointmentAcceptedEmail } = require('../utils/email.service');
 
 /**
  * @desc    Create a new appointment request
@@ -219,6 +220,25 @@ const acceptAppointment = async (req, res) => {
 
         await appointment.populate('patientId', 'name email');
         await appointment.populate('doctorId', 'name email');
+
+        // Send email notifications to both doctor and patient
+        try {
+            await sendAppointmentAcceptedEmail(
+                appointment.doctorId.email,
+                appointment.patientId.email,
+                {
+                    doctorName: appointment.doctorId.name,
+                    patientName: appointment.patientId.name,
+                    appointmentDate: appointment.requestedDate,
+                    message: appointment.message,
+                }
+            );
+            console.log('✅ Appointment confirmation emails sent successfully');
+        } catch (emailError) {
+            // Log error but don't fail the request
+            console.error('⚠️  Failed to send appointment emails:', emailError.message);
+            // Continue with the response - email failure shouldn't block appointment acceptance
+        }
 
         res.status(200).json({
             success: true,
