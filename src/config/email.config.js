@@ -23,14 +23,9 @@ const createTransporter = () => {
             },
         });
 
-        // Verify connection configuration
-        transporter.verify((error, success) => {
-            if (error) {
-                console.error('❌ Email configuration error:', error.message);
-            } else {
-                console.log('✅ Email server is ready to send messages');
-            }
-        });
+        // Note: Verification removed to prevent build-time SMTP connection attempts
+        // The transporter will be validated when actually sending emails
+        console.log('📧 Email transporter configured successfully');
 
         return transporter;
     } catch (error) {
