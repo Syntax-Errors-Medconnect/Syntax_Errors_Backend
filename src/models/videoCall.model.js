@@ -47,6 +47,14 @@ const videoCallSchema = new mongoose.Schema(
             type: String,
             default: null,
         },
+        transcriptionText: {
+            type: [{
+                timestamp: Number, // seconds from start
+                speaker: String, // 'doctor' or 'patient'
+                text: String,
+            }],
+            default: [],
+        },
         // Agora-specific fields for recording
         agoraResourceId: {
             type: String,

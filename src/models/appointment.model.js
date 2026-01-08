@@ -21,6 +21,10 @@ const appointmentSchema = new mongoose.Schema(
             type: Date,
             required: [true, 'Requested date is required'],
         },
+        requestedTime: {
+            type: String,
+            default: '',
+        },
         message: {
             type: String,
             maxlength: [500, 'Message cannot exceed 500 characters'],
