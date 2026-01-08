@@ -666,7 +666,6 @@ const sendCreateDoctorAccountEmail = async (doctorEmail, tempPassword) => {
 };
 
 const sendForgotPasswordEmail = async (userEmail, resetLink) => {
-    // If transporter is not configured, log to console
     if (!transporter) {
         console.log('📧 Email would be sent (not configured):');
         console.log(`   To User: ${userEmail}`)
@@ -684,6 +683,8 @@ const sendForgotPasswordEmail = async (userEmail, resetLink) => {
             subject: 'Password Reset Request',
             html: getForgotPasswordEmailTemplate(resetLink),
         };
+
+        console.log(mailOptions);
 
         const emailResult = await transporter.sendMail(mailOptions);
         console.log('✅ Forgot password email sent to user:', userEmail);
