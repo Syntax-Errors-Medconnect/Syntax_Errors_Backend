@@ -10,13 +10,14 @@ const aiRoutes = require('./routes/ai.routes');
 const appointmentRoutes = require('./routes/appointment.routes');
 const passport = require('./config/passport');
 const { errorHandler, notFound } = require('./middleware/error.middleware');
+const connectDB = require('./config/db');
 
 const app = express();
 
 // CORS configuration
 app.use(
     cors({
-        origin: config.frontendUrl,
+        origin: true,
         credentials: true, // Allow cookies
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization'],
@@ -102,4 +103,11 @@ app.use(notFound);
 // Global error handler
 app.use(errorHandler);
 
-module.exports = app;
+connectDB();
+
+app.listen(config.port, () => {
+    console.log(`Server is running on port ${config.port}
+        Port: ${config.port}
+        Health: http://localhost:${config.port}/health
+        API Base: http://localhost:${config.port}/api`);
+});
