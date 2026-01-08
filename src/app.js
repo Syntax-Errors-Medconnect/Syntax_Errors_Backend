@@ -11,6 +11,7 @@ const appointmentRoutes = require('./routes/appointment.routes');
 const adminRoutes = require('./routes/admin.routes');
 const chatRoutes = require('./routes/chat.routes');
 const medicalHistoryRoutes = require('./routes/medicalHistory.routes');
+const videoCallRoutes = require('./routes/videoCall.routes');
 const passport = require('./config/passport');
 const { errorHandler, notFound } = require('./middleware/error.middleware');
 const connectDB = require('./config/db');
@@ -116,6 +117,14 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/admin', adminRoutes);
 
 app.use('/api/medical-history', medicalHistoryRoutes);
+
+// Video Call routes
+// POST /api/video-calls/generate-token - Generate Agora token
+// POST /api/video-calls/start - Start video call
+// PUT /api/video-calls/:id/end - End video call
+// GET /api/video-calls/appointment/:appointmentId - Get call by appointment
+// GET /api/video-calls/history - Get call history
+app.use('/api/video-calls', videoCallRoutes);
 
 // 404 handler
 app.use(notFound);
