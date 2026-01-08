@@ -40,6 +40,7 @@ const createVisitSummary = async (req, res) => {
             doctorId: req.userId,
             visitDate: visitDate || Date.now(),
             summaryText,
+            pdfUrl: req.body.pdfUrl || null,
         });
 
         // Populate for response

@@ -22,6 +22,16 @@ const visitSummarySchema = new mongoose.Schema(
             required: [true, 'Summary text is required'],
             minlength: [10, 'Summary must be at least 10 characters'],
         },
+        pdfUrl: {
+            type: String,
+            default: null,
+            validate: {
+                validator: function (v) {
+                    return !v || v.startsWith('https://res.cloudinary.com') || v.startsWith('https://cloudinary.com');
+                },
+                message: 'PDF must be hosted on Cloudinary'
+            }
+        },
     },
     {
         timestamps: true,
