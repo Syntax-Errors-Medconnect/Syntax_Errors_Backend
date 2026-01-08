@@ -60,8 +60,8 @@ const generateToken = async (req, res) => {
             });
         }
 
-        // Generate token for this user
-        const token = generateAgoraToken(videoCall.channelName, req.userId);
+        // Generate token for this user (use 0 for auto-generated UID)
+        const token = generateAgoraToken(videoCall.channelName, 0);
 
         res.status(200).json({
             success: true,
@@ -69,7 +69,7 @@ const generateToken = async (req, res) => {
                 token,
                 channelName: videoCall.channelName,
                 appId: process.env.AGORA_APP_ID,
-                uid: req.userId,
+                uid: 0, // Let Agora auto-generate unique UID
                 videoCallId: videoCall._id,
             },
         });
