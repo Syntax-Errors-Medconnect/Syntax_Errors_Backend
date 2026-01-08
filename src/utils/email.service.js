@@ -1,4 +1,15 @@
-const transporter = require('../config/email.config');
+const nodemailer = require("nodemailer");
+
+// Set up Brevo as the transport for Nodemailer
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST || "smtp-relay.brevo.com",
+  port: process.env.SMTP_PORT || 587,
+  secure: process.env.SMTP_SECURE === "true",
+  auth: {
+    user: process.env.BREVO_SMTP_USER,
+    pass: process.env.BREVO_SMTP_PASS,
+  },
+});
 
 /**
  * Email service for sending appointment notifications
@@ -318,22 +329,26 @@ const sendAppointmentAcceptedEmail = async (doctorEmail, patientEmail, appointme
 
     try {
         // Send email to doctor
-        const doctorEmailResult = await transporter.sendMail({
-            from: `"${fromName}" <${fromAddress}>`,
+        const mailOptions = {
+            from: process.env.DEFAULT_FROM_EMAIL,
             to: doctorEmail,
             subject: `New Appointment Confirmed - ${appointmentDetails.patientName}`,
             html: getDoctorEmailTemplate(appointmentDetails),
-        });
+        };
+        
+        const doctorEmailResult = await transporter.sendMail(mailOptions);
 
         console.log('✅ Email sent to doctor:', doctorEmail);
 
         // Send email to patient
-        const patientEmailResult = await transporter.sendMail({
-            from: `"${fromName}" <${fromAddress}>`,
+        const patientEmail = {
+            from: process.env.DEFAULT_FROM_EMAIL,
             to: patientEmail,
             subject: `Appointment Confirmed with Dr. ${appointmentDetails.doctorName}`,
             html: getPatientEmailTemplate(appointmentDetails),
-        });
+        };
+
+        const patientEmailResult = await transporter.sendMail(patientEmail);
 
         console.log('✅ Email sent to patient:', patientEmail);
 

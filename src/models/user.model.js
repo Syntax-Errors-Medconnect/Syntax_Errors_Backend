@@ -113,7 +113,7 @@ const userSchema = new mongoose.Schema(
                 ],
                 status: {
                     type: String,
-                    enum: ['Active', 'Recovered', 'Recovering', 'Monitoring'],
+                    enum: ['Active', 'Recovered', 'Recovering'],
                     default: 'Active',
                 },
                 documents: [
