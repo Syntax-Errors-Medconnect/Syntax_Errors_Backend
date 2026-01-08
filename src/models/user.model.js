@@ -59,6 +59,74 @@ const userSchema = new mongoose.Schema(
             ref: 'User',
             default: null, // Patients can assign themselves to a doctor
         },
+        medicalHistory: [
+            {
+                eventId: {
+                    type: String,
+                    required: true,
+                },
+                condition: {
+                    name: {
+                        type: String,
+                        required: [true, 'Condition name is required'],
+                    },
+                    type: {
+                        type: String,
+                        enum: ['Injury', 'Illness', 'Chronic', 'Allergy', 'Surgery', 'Other'],
+                        required: true,
+                    },
+                    severity: {
+                        type: String,
+                        enum: ['Mild', 'Moderate', 'Severe', 'Critical'],
+                        default: 'Moderate',
+                    },
+                    description: String,
+                },
+                diagnosedOn: {
+                    type: Date,
+                    required: [true, 'Diagnosis date is required'],
+                },
+                diagnosedBy: {
+                    doctorId: String,
+                    doctorName: String,
+                    hospital: String,
+                },
+                affectedBodyPart: String,
+                treatments: [
+                    {
+                        treatmentId: String,
+                        type: {
+                            type: String,
+                            enum: ['Medication', 'Procedure', 'Therapy', 'Surgery', 'Other'],
+                        },
+                        details: mongoose.Schema.Types.Mixed,
+                        startedOn: Date,
+                        endedOn: Date,
+                    },
+                ],
+                followUps: [
+                    {
+                        date: Date,
+                        notes: String,
+                        nextVisit: Date,
+                    },
+                ],
+                status: {
+                    type: String,
+                    enum: ['Active', 'Recovered', 'Recovering', 'Monitoring'],
+                    default: 'Active',
+                },
+                documents: [
+                    {
+                        type: {
+                            type: String,
+                            enum: ['X-Ray', 'MRI', 'CT Scan', 'Lab Report', 'Prescription', 'Other'],
+                        },
+                        url: String,
+                    },
+                ],
+            },
+        ],
         refreshTokens: [
             {
                 token: {

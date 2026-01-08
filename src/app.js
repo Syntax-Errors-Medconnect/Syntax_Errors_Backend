@@ -10,6 +10,7 @@ const aiRoutes = require('./routes/ai.routes');
 const appointmentRoutes = require('./routes/appointment.routes');
 const adminRoutes = require('./routes/admin.routes');
 const chatRoutes = require('./routes/chat.routes');
+const medicalHistoryRoutes = require('./routes/medicalHistory.routes');
 const passport = require('./config/passport');
 const { errorHandler, notFound } = require('./middleware/error.middleware');
 const connectDB = require('./config/db');
@@ -113,6 +114,8 @@ app.use('/api/chat', chatRoutes);
 // PUT /api/admin/doctors/:id - Update doctor (admin only)
 // DELETE /api/admin/doctors/:id - Delete doctor (admin only)
 app.use('/api/admin', adminRoutes);
+
+app.use('/api/medical-history', medicalHistoryRoutes);
 
 // 404 handler
 app.use(notFound);
