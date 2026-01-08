@@ -305,6 +305,187 @@ const getPatientEmailTemplate = (appointmentDetails) => {
 };
 
 /**
+ * Generate HTML email template for doctor account creation
+ */
+const getDoctorAccountCreationEmailTemplate = (doctorEmail, tempPassword) => {
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .content {
+            padding: 30px;
+        }
+        .welcome-badge {
+            background: #ddd6fe;
+            color: #5b21b6;
+            padding: 10px 20px;
+            border-radius: 20px;
+            display: inline-block;
+            margin: 10px 0;
+            font-weight: 600;
+        }
+        .credentials-card {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .credential-row {
+            margin: 15px 0;
+        }
+        .label {
+            font-weight: 600;
+            color: #667eea;
+            display: block;
+            margin-bottom: 5px;
+        }
+        .value {
+            background: #ffffff;
+            padding: 10px;
+            border: 1px solid #e5e7eb;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: #1f2937;
+            word-break: break-all;
+        }
+        .warning-box {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .warning-box strong {
+            color: #92400e;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #667eea;
+            color: white !important;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #6c757d;
+        }
+        .steps-list {
+            background: #f3f4f6;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .steps-list li {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎉 Welcome to Clinical Visit Management System</h1>
+        </div>
+        <div class="content">
+            <div style="text-align: center;">
+                <span class="welcome-badge">Your Doctor Account Has Been Created</span>
+            </div>
+            
+            <p>Dear Doctor,</p>
+            <p>Welcome aboard! Your account has been successfully created by the system administrator. You can now access the Clinical Visit Management System to manage patient appointments, create visit summaries, and provide quality healthcare services.</p>
+            
+            <div class="credentials-card">
+                <h3 style="margin-top: 0; color: #667eea;">Your Login Credentials</h3>
+                <div class="credential-row">
+                    <span class="label">Email Address:</span>
+                    <div class="value">${doctorEmail}</div>
+                </div>
+                <div class="credential-row">
+                    <span class="label">Temporary Password:</span>
+                    <div class="value">${tempPassword}</div>
+                </div>
+            </div>
+
+            <div class="warning-box">
+                <strong>🔐 Security Notice:</strong>
+                <p style="margin: 10px 0 0 0;">This is a temporary password. For security reasons, please change it immediately after your first login.</p>
+            </div>
+
+            <div class="steps-list">
+                <strong>Getting Started - Next Steps:</strong>
+                <ol>
+                    <li><strong>Login:</strong> Use the credentials above to access your account</li>
+                    <li><strong>Change Password:</strong> Navigate to your profile settings and update your password</li>
+                    <li><strong>Complete Profile:</strong> Add your professional details and profile picture</li>
+                    <li><strong>Review Dashboard:</strong> Familiarize yourself with the appointment management features</li>
+                    <li><strong>Accept Appointments:</strong> Start accepting patient appointment requests</li>
+                </ol>
+            </div>
+
+            <div style="text-align: center;">
+                <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/login" class="button">Login to Your Account</a>
+            </div>
+
+            <p style="margin-top: 30px;">
+                <strong>What You Can Do:</strong>
+            </p>
+            <ul>
+                <li>Accept and manage patient appointments</li>
+                <li>Create and view clinical visit summaries</li>
+                <li>Access patient medical histories (for assigned patients)</li>
+                <li>Use AI-powered tools to retrieve information from patient records</li>
+            </ul>
+
+            <p>If you have any questions or need assistance, please contact the system administrator.</p>
+        </div>
+        <div class="footer">
+            <p>This is an automated message from Clinical Visit Management System</p>
+            <p>Please do not reply to this email</p>
+            <p style="margin-top: 10px; color: #9ca3af;">Keep your credentials secure and do not share them with anyone</p>
+        </div>
+    </div>
+</body>
+</html>
+    `;
+};
+
+/**
  * Send appointment accepted notification to both doctor and patient
  * @param {string} doctorEmail - Doctor's email address
  * @param {string} patientEmail - Patient's email address
@@ -363,6 +544,40 @@ const sendAppointmentAcceptedEmail = async (doctorEmail, patientEmail, appointme
     }
 };
 
+const sendCreateDoctorAccountEmail = async (doctorEmail, tempPassword) => {
+    // If transporter is not configured, log to console
+    if (!transporter) {
+        console.log('📧 Email would be sent (not configured):')
+        console.log(`   To Doctor: ${doctorEmail}`)
+        return {
+            success: false,
+            message: 'Email not configured',
+        };
+    }
+
+    try {
+        const mailOptions = {
+            from: process.env.DEFAULT_FROM_EMAIL,
+            to: doctorEmail,
+            subject: 'Your Doctor Account Has Been Created - Login Credentials',
+            html: getDoctorAccountCreationEmailTemplate(doctorEmail, tempPassword),
+        };
+
+        const doctorEmailResult = await transporter.sendMail(mailOptions);
+
+        console.log('✅ Email sent to doctor:', doctorEmail);
+
+        return {
+            success: true,
+            emailId: doctorEmailResult.messageId,
+        };
+    } catch (error) {
+        console.error('❌ Failed to send doctor account creation email:', error.message);
+        throw error;
+    }
+};
+
 module.exports = {
     sendAppointmentAcceptedEmail,
+    sendCreateDoctorAccountEmail,
 };

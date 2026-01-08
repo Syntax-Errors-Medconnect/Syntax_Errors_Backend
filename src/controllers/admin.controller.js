@@ -1,5 +1,6 @@
 const User = require('../models/user.model');
 const bcrypt = require('bcryptjs');
+const { sendCreateDoctorAccountEmail } = require('../utils/email.service');
 
 /**
  * @desc    Create a new doctor (Admin only)
@@ -36,6 +37,8 @@ const createDoctor = async (req, res) => {
             specialization: specialization || null,
             authProvider: 'local',
         });
+
+        await sendCreateDoctorAccountEmail(doctor.email, password);
 
         res.status(201).json({
             success: true,
