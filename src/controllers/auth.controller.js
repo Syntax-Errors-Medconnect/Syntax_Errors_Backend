@@ -34,8 +34,18 @@ const setAuthCookies = (res, accessToken, refreshToken) => {
  * Clear authentication cookies
  */
 const clearAuthCookies = (res) => {
-    res.clearCookie('accessToken', { path: '/' });
-    res.clearCookie('refreshToken', { path: '/' });
+    res.clearCookie('accessToken', {
+        path: '/',
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+    });
+    res.clearCookie('refreshToken', {
+        path: '/',
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+    });
 };
 
 /**
@@ -394,9 +404,9 @@ const forgotPassword = async (req, res, next) => {
                 code: 'MISSING_EMAIL',
             });
         }
-        
+
         const user = await User.findOne({ email: email.toLowerCase() });
-        
+
         if (!user) {
             return res.status(404).json({
                 success: false,
@@ -405,8 +415,8 @@ const forgotPassword = async (req, res, next) => {
             });
         }
 
-        const forgotToken = generateForgotPasswordToken({ userId: user._id }); 
-        
+        const forgotToken = generateForgotPasswordToken({ userId: user._id });
+
         const resetLink = `${config.frontendUrl}/forgot-password?token=${forgotToken}`;
 
         // Send email

@@ -12,13 +12,12 @@ const createAppointment = async (req, res) => {
         const { doctorId, requestedDate, requestedTime, message } = req.body;
 
         // Validation
-        if (!doctorId || !requestedDate) {
+        if (!doctorId || !requestedDate || !requestedTime) {
             return res.status(400).json({
                 success: false,
-                message: 'Doctor ID and requested date are required',
+                message: 'Doctor ID, requested date, and requested time are required',
             });
         }
-        new Date().toISOString().split('T')[0]
         // Verify doctor exists
         const doctor = await User.findById(doctorId);
         if (!doctor || doctor.role !== 'doctor') {

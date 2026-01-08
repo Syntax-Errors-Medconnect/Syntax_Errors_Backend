@@ -179,22 +179,24 @@ const getPatientVisits = async (req, res) => {
             .populate('patientId', 'name email')
             .sort({ visitDate: -1 });
 
-        const formattedVisits = visits.map((visit) => ({
-            _id: visit._id,
-            patientId: visit.patientId._id,
-            patientName: visit.patientName,
-            doctorId: visit.doctorId._id,
-            doctorName: visit.doctorId.name,
-            visitDate: visit.visitDate,
-            visitTime: visit.visitTime,
-            reason: visit.reason,
-            diagnosis: visit.diagnosis,
-            solution: visit.solution,
-            medicinePrescribed: visit.medicinePrescribed,
-            fullSummary: visit.fullSummary,
-            createdAt: visit.createdAt,
-            updatedAt: visit.updatedAt,
-        }));
+        const formattedVisits = visits
+            .filter((visit) => visit.doctorId && visit.patientId) // Filter out visits with deleted users
+            .map((visit) => ({
+                _id: visit._id,
+                patientId: visit.patientId._id,
+                patientName: visit.patientName,
+                doctorId: visit.doctorId._id,
+                doctorName: visit.doctorId.name,
+                visitDate: visit.visitDate,
+                visitTime: visit.visitTime,
+                reason: visit.reason,
+                diagnosis: visit.diagnosis,
+                solution: visit.solution,
+                medicinePrescribed: visit.medicinePrescribed,
+                fullSummary: visit.fullSummary,
+                createdAt: visit.createdAt,
+                updatedAt: visit.updatedAt,
+            }));
 
         res.status(200).json({
             success: true,
@@ -285,22 +287,24 @@ const getDoctorVisits = async (req, res) => {
             .populate('doctorId', 'name email')
             .sort({ visitDate: -1 });
 
-        const formattedVisits = visits.map((visit) => ({
-            _id: visit._id,
-            patientId: visit.patientId._id,
-            patientName: visit.patientName,
-            doctorId: visit.doctorId._id,
-            doctorName: visit.doctorId.name,
-            visitDate: visit.visitDate,
-            visitTime: visit.visitTime,
-            reason: visit.reason,
-            diagnosis: visit.diagnosis,
-            solution: visit.solution,
-            medicinePrescribed: visit.medicinePrescribed,
-            fullSummary: visit.fullSummary,
-            createdAt: visit.createdAt,
-            updatedAt: visit.updatedAt,
-        }));
+        const formattedVisits = visits
+            .filter((visit) => visit.doctorId && visit.patientId) // Filter out visits with deleted users
+            .map((visit) => ({
+                _id: visit._id,
+                patientId: visit.patientId._id,
+                patientName: visit.patientName,
+                doctorId: visit.doctorId._id,
+                doctorName: visit.doctorId.name,
+                visitDate: visit.visitDate,
+                visitTime: visit.visitTime,
+                reason: visit.reason,
+                diagnosis: visit.diagnosis,
+                solution: visit.solution,
+                medicinePrescribed: visit.medicinePrescribed,
+                fullSummary: visit.fullSummary,
+                createdAt: visit.createdAt,
+                updatedAt: visit.updatedAt,
+            }));
 
         res.status(200).json({
             success: true,
@@ -357,22 +361,24 @@ const getPatientVisitsById = async (req, res) => {
             .populate('doctorId', 'name email')
             .sort({ visitDate: -1 });
 
-        const formattedVisits = visits.map((visit) => ({
-            _id: visit._id,
-            patientId: visit.patientId._id,
-            patientName: visit.patientName,
-            doctorId: visit.doctorId._id,
-            doctorName: visit.doctorId.name,
-            visitDate: visit.visitDate,
-            visitTime: visit.visitTime,
-            reason: visit.reason,
-            diagnosis: visit.diagnosis,
-            solution: visit.solution,
-            medicinePrescribed: visit.medicinePrescribed,
-            fullSummary: visit.fullSummary,
-            createdAt: visit.createdAt,
-            updatedAt: visit.updatedAt,
-        }));
+        const formattedVisits = visits
+            .filter((visit) => visit.doctorId && visit.patientId) // Filter out visits with deleted users
+            .map((visit) => ({
+                _id: visit._id,
+                patientId: visit.patientId._id,
+                patientName: visit.patientName,
+                doctorId: visit.doctorId._id,
+                doctorName: visit.doctorId.name,
+                visitDate: visit.visitDate,
+                visitTime: visit.visitTime,
+                reason: visit.reason,
+                diagnosis: visit.diagnosis,
+                solution: visit.solution,
+                medicinePrescribed: visit.medicinePrescribed,
+                fullSummary: visit.fullSummary,
+                createdAt: visit.createdAt,
+                updatedAt: visit.updatedAt,
+            }));
 
         res.status(200).json({
             success: true,

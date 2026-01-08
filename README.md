@@ -45,6 +45,36 @@ A production-ready healthcare management backend built with Node.js, Express, an
   - Message history and persistence
   - Session management
 
+## 🏗️ Architecture Overview
+
+The MedConnect backend is built on a robust, scalable architecture following RESTful API design principles and microservices patterns. The system is designed to handle healthcare data securely while maintaining high performance and reliability.
+
+![Architecture Diagram](./architecture-diagram.jpeg)
+
+### System Architecture
+
+The backend follows a layered architecture pattern:
+
+1. **API Layer**: Express.js routes with middleware for authentication and validation
+2. **Controller Layer**: Business logic handlers for each domain (auth, appointments, visits, etc.)
+3. **Service Layer**: Reusable business services (email, video tokens, AI integration)
+4. **Data Access Layer**: Mongoose models with schema validation
+5. **External Integrations**: 
+   - **Agora.io**: Real-time video/audio communication
+   - **Brevo SMTP**: Transactional email delivery
+   - **MongoDB Atlas**: Cloud database with automatic backups
+   - **Google OAuth**: Secure authentication provider
+   - **GROQ AI**: Intelligent clinical summaries
+
+### Data Flow
+
+1. **Request Flow**: Client → API Gateway → Authentication Middleware → Controller → Service → Database
+2. **Response Flow**: Database → Service → Controller → Response Formatter → Client
+3. **Real-time Communication**: Client ↔ Agora RTC ↔ Backend Token Service
+4. **Email Notifications**: Event Trigger → Email Service → Brevo SMTP → Recipient
+
+For frontend architecture details, see the [frontend documentation](../b2b-frontend/README.md).
+
 ## 📋 Prerequisites
 
 - **Node.js** >= 14.0.0
