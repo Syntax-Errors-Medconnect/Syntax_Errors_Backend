@@ -4,7 +4,6 @@ const ChatMessage = require('../models/chatMessage.model');
 const VisitSummary = require('../models/visitSummary.model');
 const Appointment = require('../models/appointment.model');
 const User = require('../models/user.model');
-const { extractMultiplePdfText } = require('../services/pdf.service');
 
 // Initialize Groq
 const groq = process.env.GROQ_API_KEY
@@ -12,14 +11,14 @@ const groq = process.env.GROQ_API_KEY
     : null;
 
 /**
- * System prompt for PDF-based chat
+ * System prompt for report-based chat
  */
 const SYSTEM_PROMPT = `You are a Clinical Report Assistant. Your task is to answer questions based ONLY on the provided medical report content.
 
 STRICT RULES:
-1. EXTRACTION ONLY: Only use information from the provided PDF text. Never use external medical knowledge.
+1. EXTRACTION ONLY: Only use information from the provided patient reports. Never use external medical knowledge.
 2. NO MEDICAL ADVICE: If asked for diagnosis, treatment recommendations, or medical advice, respond: "I cannot provide medical advice. Please consult your healthcare provider."
-3. MISSING INFO: If the information is not in the document, say: "This information is not in the provided report."
+3. MISSING INFO: If the information is not in the reports, say: "This information is not in the provided reports."
 4. NO HALLUCINATION: Never invent or assume information not explicitly stated.
 5. BE CONCISE: Give clear, direct answers. Cite relevant sections when possible.
 6. PRIVACY: Do not reveal personal identification details unless specifically asked.`;
@@ -272,30 +271,24 @@ const sendMessage = async (req, res) => {
             content: message.trim(),
         });
 
-        // Get patient's PDF reports
+        // Get patient's reports (structured data)
         const visits = await VisitSummary.find({
             patientId: session.patientId,
-            pdfUrl: { $exists: true, $ne: null },
-        }).select('pdfUrl visitDate summaryText');
+        }).select('patientName visitDate visitTime reason diagnosis solution medicinePrescribed fullSummary');
 
-        // Extract text from PDFs
-        let pdfContext = '';
-        const pdfUrls = visits.map(v => v.pdfUrl).filter(Boolean);
-
-        if (pdfUrls.length > 0) {
-            try {
-                pdfContext = await extractMultiplePdfText(pdfUrls);
-            } catch (err) {
-                console.error('PDF extraction error:', err);
-            }
-        }
-
-        // Also include visit summaries as context
-        const summaryContext = visits.map(v =>
-            `Visit Date: ${v.visitDate?.toISOString().split('T')[0] || 'Unknown'}\nSummary: ${v.summaryText || 'No summary'}`
-        ).join('\n\n---\n\n');
-
-        const fullContext = [pdfContext, summaryContext].filter(Boolean).join('\n\n===\n\n');
+        // Build structured context from reports
+        const reportContext = visits.map(v => {
+            const dateStr = v.visitDate?.toISOString().split('T')[0] || 'Unknown';
+            return `=== PATIENT REPORT ===
+Patient: ${v.patientName}
+Date: ${dateStr}${v.visitTime ? ` at ${v.visitTime}` : ''}
+Reason for Visit: ${v.reason || 'Not specified'}
+Diagnosis: ${v.diagnosis || 'Not specified'}
+Treatment/Solution: ${v.solution || 'Not specified'}
+Medicine Prescribed: ${v.medicinePrescribed || 'None'}
+Full Summary: ${v.fullSummary || 'No summary'}
+=====================`;
+        }).join('\n\n');
 
         // Get chat history for context
         const previousMessages = await ChatMessage.find({ sessionId })
@@ -304,7 +297,10 @@ const sendMessage = async (req, res) => {
 
         // Build messages for AI
         const aiMessages = [
-            { role: 'system', content: `${SYSTEM_PROMPT}\n\nPATIENT REPORT CONTENT:\n${fullContext || 'No reports available for this patient.'}` },
+            {
+                role: 'system',
+                content: `${SYSTEM_PROMPT}\n\nPATIENT REPORTS:\n${reportContext || 'No reports available for this patient.'}`
+            },
             ...previousMessages.map(m => ({
                 role: m.role,
                 content: m.content,

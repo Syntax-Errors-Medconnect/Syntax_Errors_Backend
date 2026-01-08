@@ -2,19 +2,29 @@ const VisitSummary = require('../models/visitSummary.model');
 const User = require('../models/user.model');
 
 /**
- * @desc    Create a new visit summary
+ * @desc    Create a new patient report
  * @route   POST /api/visit-summary
  * @access  Doctor only
  */
 const createVisitSummary = async (req, res) => {
     try {
-        const { patientId, visitDate, summaryText } = req.body;
+        const {
+            patientId,
+            patientName,
+            visitDate,
+            visitTime,
+            reason,
+            diagnosis,
+            solution,
+            medicinePrescribed,
+            fullSummary
+        } = req.body;
 
         // Validation
-        if (!patientId || !summaryText) {
+        if (!patientId || !patientName || !reason || !solution || !fullSummary) {
             return res.status(400).json({
                 success: false,
-                message: 'Patient ID and summary text are required',
+                message: 'Patient ID, patient name, reason, solution, and full summary are required',
             });
         }
 
@@ -38,9 +48,14 @@ const createVisitSummary = async (req, res) => {
         const visitSummary = await VisitSummary.create({
             patientId,
             doctorId: req.userId,
+            patientName,
             visitDate: visitDate || Date.now(),
-            summaryText,
-            pdfUrl: req.body.pdfUrl || null,
+            visitTime: visitTime || '',
+            reason,
+            diagnosis: diagnosis || '',
+            solution,
+            medicinePrescribed: medicinePrescribed || '',
+            fullSummary,
         });
 
         // Populate for response
@@ -49,26 +64,31 @@ const createVisitSummary = async (req, res) => {
 
         res.status(201).json({
             success: true,
-            message: 'Visit summary created successfully',
+            message: 'Patient report created successfully',
             data: {
                 visit: {
                     _id: visitSummary._id,
                     patientId: visitSummary.patientId._id,
-                    patientName: visitSummary.patientId.name,
+                    patientName: visitSummary.patientName,
                     doctorId: visitSummary.doctorId._id,
                     doctorName: visitSummary.doctorId.name,
                     visitDate: visitSummary.visitDate,
-                    summary: visitSummary.summaryText,
+                    visitTime: visitSummary.visitTime,
+                    reason: visitSummary.reason,
+                    diagnosis: visitSummary.diagnosis,
+                    solution: visitSummary.solution,
+                    medicinePrescribed: visitSummary.medicinePrescribed,
+                    fullSummary: visitSummary.fullSummary,
                     createdAt: visitSummary.createdAt,
                     updatedAt: visitSummary.updatedAt,
                 },
             },
         });
     } catch (error) {
-        console.error('Create visit error:', error);
+        console.error('Create report error:', error);
         res.status(500).json({
             success: false,
-            message: 'Failed to create visit summary',
+            message: 'Failed to create patient report',
             error: error.message,
         });
     }
@@ -136,11 +156,16 @@ const getPatientVisits = async (req, res) => {
         const formattedVisits = visits.map((visit) => ({
             _id: visit._id,
             patientId: visit.patientId._id,
-            patientName: visit.patientId.name,
+            patientName: visit.patientName,
             doctorId: visit.doctorId._id,
             doctorName: visit.doctorId.name,
             visitDate: visit.visitDate,
-            summary: visit.summaryText,
+            visitTime: visit.visitTime,
+            reason: visit.reason,
+            diagnosis: visit.diagnosis,
+            solution: visit.solution,
+            medicinePrescribed: visit.medicinePrescribed,
+            fullSummary: visit.fullSummary,
             createdAt: visit.createdAt,
             updatedAt: visit.updatedAt,
         }));
@@ -176,7 +201,7 @@ const getVisitSummaryById = async (req, res) => {
         if (!visit) {
             return res.status(404).json({
                 success: false,
-                message: 'Visit summary not found',
+                message: 'Report not found',
             });
         }
 
@@ -198,11 +223,16 @@ const getVisitSummaryById = async (req, res) => {
                 visit: {
                     _id: visit._id,
                     patientId: visit.patientId._id,
-                    patientName: visit.patientId.name,
+                    patientName: visit.patientName,
                     doctorId: visit.doctorId._id,
                     doctorName: visit.doctorId.name,
                     visitDate: visit.visitDate,
-                    summary: visit.summaryText,
+                    visitTime: visit.visitTime,
+                    reason: visit.reason,
+                    diagnosis: visit.diagnosis,
+                    solution: visit.solution,
+                    medicinePrescribed: visit.medicinePrescribed,
+                    fullSummary: visit.fullSummary,
                     createdAt: visit.createdAt,
                     updatedAt: visit.updatedAt,
                 },
@@ -212,7 +242,7 @@ const getVisitSummaryById = async (req, res) => {
         console.error('Get visit details error:', error);
         res.status(500).json({
             success: false,
-            message: 'Failed to fetch visit details',
+            message: 'Failed to fetch report details',
         });
     }
 };
@@ -232,11 +262,16 @@ const getDoctorVisits = async (req, res) => {
         const formattedVisits = visits.map((visit) => ({
             _id: visit._id,
             patientId: visit.patientId._id,
-            patientName: visit.patientId.name,
+            patientName: visit.patientName,
             doctorId: visit.doctorId._id,
             doctorName: visit.doctorId.name,
             visitDate: visit.visitDate,
-            summary: visit.summaryText,
+            visitTime: visit.visitTime,
+            reason: visit.reason,
+            diagnosis: visit.diagnosis,
+            solution: visit.solution,
+            medicinePrescribed: visit.medicinePrescribed,
+            fullSummary: visit.fullSummary,
             createdAt: visit.createdAt,
             updatedAt: visit.updatedAt,
         }));
@@ -252,7 +287,7 @@ const getDoctorVisits = async (req, res) => {
         console.error('Get doctor visits error:', error);
         res.status(500).json({
             success: false,
-            message: 'Failed to fetch visit summaries',
+            message: 'Failed to fetch reports',
         });
     }
 };
@@ -294,11 +329,16 @@ const getPatientVisitsById = async (req, res) => {
         const formattedVisits = visits.map((visit) => ({
             _id: visit._id,
             patientId: visit.patientId._id,
-            patientName: visit.patientId.name,
+            patientName: visit.patientName,
             doctorId: visit.doctorId._id,
             doctorName: visit.doctorId.name,
             visitDate: visit.visitDate,
-            summary: visit.summaryText,
+            visitTime: visit.visitTime,
+            reason: visit.reason,
+            diagnosis: visit.diagnosis,
+            solution: visit.solution,
+            medicinePrescribed: visit.medicinePrescribed,
+            fullSummary: visit.fullSummary,
             createdAt: visit.createdAt,
             updatedAt: visit.updatedAt,
         }));
@@ -314,7 +354,7 @@ const getPatientVisitsById = async (req, res) => {
         console.error('Get patient visits by ID error:', error);
         res.status(500).json({
             success: false,
-            message: 'Failed to fetch patient visits',
+            message: 'Failed to fetch patient reports',
         });
     }
 };
@@ -326,7 +366,6 @@ const getPatientVisitsById = async (req, res) => {
  */
 const getDoctors = async (req, res) => {
     try {
-
         console.log('Fetching doctors for patient:', req.userId);
         const doctors = await User.find({ role: 'doctor' })
             .select('name email profilePicture');
