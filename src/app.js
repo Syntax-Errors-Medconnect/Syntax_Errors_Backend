@@ -8,7 +8,9 @@ const oauthRoutes = require('./routes/oauth.routes');
 const visitRoutes = require('./routes/visit.routes');
 const aiRoutes = require('./routes/ai.routes');
 const appointmentRoutes = require('./routes/appointment.routes');
+const adminRoutes = require('./routes/admin.routes');
 const chatRoutes = require('./routes/chat.routes');
+const medicalHistoryRoutes = require('./routes/medicalHistory.routes');
 const passport = require('./config/passport');
 const { errorHandler, notFound } = require('./middleware/error.middleware');
 const connectDB = require('./config/db');
@@ -105,6 +107,15 @@ app.use('/api/appointments', appointmentRoutes);
 // POST /api/chat/sessions/:id/messages - Send message
 // DELETE /api/chat/sessions/:id - Delete session
 app.use('/api/chat', chatRoutes);
+
+// Admin routes
+// POST /api/admin/doctors - Create doctor (admin only)
+// GET /api/admin/doctors - List all doctors (admin only)
+// PUT /api/admin/doctors/:id - Update doctor (admin only)
+// DELETE /api/admin/doctors/:id - Delete doctor (admin only)
+app.use('/api/admin', adminRoutes);
+
+app.use('/api/medical-history', medicalHistoryRoutes);
 
 // 404 handler
 app.use(notFound);

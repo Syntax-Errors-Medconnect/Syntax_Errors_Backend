@@ -330,6 +330,122 @@ const logoutAll = async (req, res, next) => {
     }
 };
 
+const updateProfile = async (req, res, next) => {
+    try {
+        const { name, email, profilePicture } = req.body;
+        const userId = req.userId;
+
+        if (!name && !email && !profilePicture) {
+            return res.status(400).json({
+                success: false,
+                message: 'Please provide at least one field to update',
+                code: 'NO_UPDATE_FIELDS',
+            });
+        }
+
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found',
+                code: 'USER_NOT_FOUND',
+            });
+        }
+
+        if (email && email !== user.email) {
+            const existingUser = await User.findOne({ email: email.toLowerCase() });
+            if (existingUser) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Email already in use',
+                    code: 'EMAIL_EXISTS',
+                });
+            }
+            user.email = email.toLowerCase();
+        }
+
+        if (name) user.name = name;
+        if (profilePicture !== undefined) user.profilePicture = profilePicture;
+
+        await user.save();
+
+        res.status(200).json({
+            success: true,
+            message: 'Profile updated successfully',
+            data: {
+                user: user.toJSON(),
+            },
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const changePassword = async (req, res, next) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+        const userId = req.userId;
+
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({
+                success: false,
+                message: 'Please provide current password and new password',
+                code: 'MISSING_FIELDS',
+            });
+        }
+
+        if (newPassword.length < 8) {
+            return res.status(400).json({
+                success: false,
+                message: 'New password must be at least 8 characters',
+                code: 'PASSWORD_TOO_SHORT',
+            });
+        }
+
+        const user = await User.findById(userId).select('+password');
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found',
+                code: 'USER_NOT_FOUND',
+            });
+        }
+
+        if (user.authProvider !== 'local') {
+            return res.status(400).json({
+                success: false,
+                message: 'Password change not available for OAuth users',
+                code: 'OAUTH_USER',
+            });
+        }
+
+        const isPasswordValid = await user.comparePassword(currentPassword);
+        if (!isPasswordValid) {
+            return res.status(401).json({
+                success: false,
+                message: 'Current password is incorrect',
+                code: 'INVALID_PASSWORD',
+            });
+        }
+
+        user.password = newPassword;
+        await user.save();
+
+        await user.clearAllRefreshTokens();
+
+        clearAuthCookies(res);
+
+        res.status(200).json({
+            success: true,
+            message: 'Password changed successfully. Please login again.',
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     register,
     login,
@@ -337,4 +453,6 @@ module.exports = {
     refreshToken: refreshTokenHandler,
     getMe,
     logoutAll,
+    updateProfile,
+    changePassword,
 };

@@ -368,7 +368,7 @@ const getDoctors = async (req, res) => {
     try {
         console.log('Fetching doctors for patient:', req.userId);
         const doctors = await User.find({ role: 'doctor' })
-            .select('name email profilePicture');
+            .select('name email profilePicture specialization');
 
         // Get patient count for each doctor
         const doctorsWithDetails = await Promise.all(
@@ -383,6 +383,7 @@ const getDoctors = async (req, res) => {
                     name: doctor.name,
                     email: doctor.email,
                     profilePicture: doctor.profilePicture,
+                    specialization: doctor.specialization,
                     patientCount,
                 };
             })
