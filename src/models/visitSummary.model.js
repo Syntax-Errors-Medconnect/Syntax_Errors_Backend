@@ -12,25 +12,41 @@ const visitSummarySchema = new mongoose.Schema(
             ref: 'User',
             required: [true, 'Doctor ID is required'],
         },
+        patientName: {
+            type: String,
+            required: [true, 'Patient name is required'],
+        },
         visitDate: {
             type: Date,
             required: [true, 'Visit date is required'],
             default: Date.now,
         },
-        summaryText: {
+        visitTime: {
             type: String,
-            required: [true, 'Summary text is required'],
-            minlength: [10, 'Summary must be at least 10 characters'],
+            default: '',
         },
-        pdfUrl: {
+        reason: {
             type: String,
-            default: null,
-            validate: {
-                validator: function (v) {
-                    return !v || v.startsWith('https://res.cloudinary.com') || v.startsWith('https://cloudinary.com');
-                },
-                message: 'PDF must be hosted on Cloudinary'
-            }
+            required: [true, 'Reason for visit is required'],
+            minlength: [5, 'Reason must be at least 5 characters'],
+        },
+        diagnosis: {
+            type: String,
+            default: '',
+        },
+        solution: {
+            type: String,
+            required: [true, 'Solution/treatment is required'],
+            minlength: [5, 'Solution must be at least 5 characters'],
+        },
+        medicinePrescribed: {
+            type: String,
+            default: '',
+        },
+        fullSummary: {
+            type: String,
+            required: [true, 'Full summary is required'],
+            minlength: [10, 'Summary must be at least 10 characters'],
         },
     },
     {

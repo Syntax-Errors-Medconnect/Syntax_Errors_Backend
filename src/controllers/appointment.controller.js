@@ -99,9 +99,8 @@ const getDoctorAppointments = async (req, res) => {
             .populate('doctorId', 'name email')
             .sort({ createdAt: -1 });
 
-        // Filter out appointments where patient or doctor was deleted
         const formattedAppointments = appointments
-            .filter((apt) => apt.patientId && apt.doctorId)
+            .filter((apt) => apt.doctorId && apt.patientId) // Filter out appointments with deleted users
             .map((apt) => ({
                 _id: apt._id,
                 patientId: apt.patientId._id,
@@ -150,10 +149,8 @@ const getPatientAppointments = async (req, res) => {
             .populate('patientId', 'name email')
             .sort({ createdAt: -1 });
 
-        // Filter out appointments where doctor or patient was deleted
-        // and format the remaining ones
         const formattedAppointments = appointments
-            .filter((apt) => apt.doctorId && apt.patientId) // Only keep appointments with valid references
+            .filter((apt) => apt.doctorId && apt.patientId) // Filter out appointments with deleted users
             .map((apt) => ({
                 _id: apt._id,
                 patientId: apt.patientId._id,
@@ -181,6 +178,7 @@ const getPatientAppointments = async (req, res) => {
         });
     }
 };
+
 
 /**
  * @desc    Accept an appointment
