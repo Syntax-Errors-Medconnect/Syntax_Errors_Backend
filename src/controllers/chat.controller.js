@@ -10,6 +10,11 @@ const groq = process.env.GROQ_API_KEY
     ? new Groq({ apiKey: process.env.GROQ_API_KEY })
     : null;
 
+// Warn if Groq is not configured
+if (!groq) {
+    console.warn('⚠️  GROQ_API_KEY not configured - AI chat features will be unavailable');
+}
+
 /**
  * System prompt for report-based chat - ULTIMATE SECURITY
  */
@@ -315,7 +320,7 @@ const sendMessage = async (req, res) => {
         const session = await ChatSession.findOne({
             _id: sessionId,
             userId: req.userId,
-        });
+        }).populate('patientId', 'name');
 
         if (!session) {
             return res.status(404).json({
@@ -323,6 +328,9 @@ const sendMessage = async (req, res) => {
                 message: 'Session not found',
             });
         }
+
+        // Store original patient name for title comparison before any changes
+        const patientName = session.patientId?.name || 'Unknown';
 
         // Save user message
         const userMessage = await ChatMessage.create({
@@ -350,13 +358,16 @@ Full Summary: ${v.fullSummary || 'No summary'}
 =====================`;
         }).join('\n\n');
 
-        // Get chat history for context (filter out any messages with empty content)
+        // Get chat history for context (get last 10 messages, filter out empty content)
         const previousMessages = await ChatMessage.find({
             sessionId,
             content: { $exists: true, $ne: '' }
         })
-            .sort({ createdAt: 1 })
+            .sort({ createdAt: -1 })
             .limit(10);
+
+        // Reverse to get chronological order for AI context
+        previousMessages.reverse();
 
         // Build messages for AI (only include valid messages)
         const aiMessages = [
@@ -419,7 +430,7 @@ Full Summary: ${v.fullSummary || 'No summary'}
         });
 
         // Update session title from first message if it's the default
-        if (session.title === `Chat about ${session.patientId}'s reports` || session.title === 'New Chat') {
+        if (session.title === `Chat about ${patientName}'s reports` || session.title === 'New Chat') {
             session.title = message.trim().substring(0, 50) + (message.length > 50 ? '...' : '');
             await session.save();
         }

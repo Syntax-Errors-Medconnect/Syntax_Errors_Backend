@@ -99,10 +99,8 @@ const optionalAuth = async (req, res, next) => {
 
 const authenticateForgotPassword = async (req, res, next) => {
     try {
-        console.log('Authenticate forgot password middleware triggered');
         const { token } = req.body;
 
-        console.log('Forgot password token:', req.body);
         if (!token) {
             return res.status(401).json({
                 success: false,
@@ -129,7 +127,7 @@ const authenticateForgotPassword = async (req, res, next) => {
                 code: 'ACCOUNT_DEACTIVATED',
             });
         }
-        
+
         req.user = user;
         req.userId = decoded.userId;
         next();
