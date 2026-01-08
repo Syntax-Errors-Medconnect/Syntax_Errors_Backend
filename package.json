@@ -17,6 +17,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "axios": "^1.13.2",
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.6",
@@ -30,8 +31,8 @@
     "nodemailer": "^7.0.12",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
-    "uuid": "^13.0.0",
-    "pdf-parse": "^2.4.5"
+    "pdf-parse": "^2.4.5",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.2"

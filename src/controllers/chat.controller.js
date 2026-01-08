@@ -290,21 +290,26 @@ Full Summary: ${v.fullSummary || 'No summary'}
 =====================`;
         }).join('\n\n');
 
-        // Get chat history for context
-        const previousMessages = await ChatMessage.find({ sessionId })
+        // Get chat history for context (filter out any messages with empty content)
+        const previousMessages = await ChatMessage.find({
+            sessionId,
+            content: { $exists: true, $ne: '' }
+        })
             .sort({ createdAt: 1 })
             .limit(10);
 
-        // Build messages for AI
+        // Build messages for AI (only include valid messages)
         const aiMessages = [
             {
                 role: 'system',
                 content: `${SYSTEM_PROMPT}\n\nPATIENT REPORTS:\n${reportContext || 'No reports available for this patient.'}`
             },
-            ...previousMessages.map(m => ({
-                role: m.role,
-                content: m.content,
-            })),
+            ...previousMessages
+                .filter(m => m.content && m.content.trim())
+                .map(m => ({
+                    role: m.role,
+                    content: m.content,
+                })),
         ];
 
         // Get AI response
@@ -312,17 +317,38 @@ Full Summary: ${v.fullSummary || 'No summary'}
 
         if (groq) {
             try {
+                console.log('Sending message to Groq...');
                 const completion = await groq.chat.completions.create({
                     model: 'llama-3.3-70b-versatile',
                     messages: aiMessages,
                     temperature: 0.1,
                     max_tokens: 1000,
                 });
-                aiResponse = completion.choices[0].message.content;
+                const responseContent = completion.choices[0]?.message?.content;
+                console.log('Groq response received:', responseContent ? 'has content' : 'empty');
+
+                // Ensure we have a valid non-empty response
+                if (responseContent && responseContent.trim()) {
+                    aiResponse = responseContent.trim();
+                } else {
+                    // Empty response - likely hit a limit
+                    aiResponse = '⚠️ Chat limit exceeded! The AI returned an empty response. Please open a new chat to continue.';
+                }
             } catch (err) {
-                console.error('Groq API error:', err);
-                aiResponse = 'I apologize, but I encountered an error processing your request. Please try again.';
+                console.error('Groq API error:', err.message || err);
+                const errorMsg = err.message?.toLowerCase() || '';
+
+                // Check for rate limit or context length errors
+                if (err.status === 429 || errorMsg.includes('rate_limit') || errorMsg.includes('rate limit')) {
+                    aiResponse = '⚠️ Chat limit exceeded! The AI service has reached its rate limit. Please open a new chat to continue.';
+                } else if (errorMsg.includes('context_length') || errorMsg.includes('token') || errorMsg.includes('maximum')) {
+                    aiResponse = '⚠️ Chat limit exceeded! This conversation has become too long. Please open a new chat to continue.';
+                } else {
+                    aiResponse = '⚠️ Chat limit exceeded! ' + (err.message || 'Please open a new chat to continue.');
+                }
             }
+        } else {
+            console.error('Groq client not initialized - check GROQ_API_KEY');
         }
 
         // Save AI response
