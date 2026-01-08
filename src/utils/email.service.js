@@ -684,8 +684,6 @@ const sendForgotPasswordEmail = async (userEmail, resetLink) => {
             html: getForgotPasswordEmailTemplate(resetLink),
         };
 
-        console.log(mailOptions);
-
         const emailResult = await transporter.sendMail(mailOptions);
         console.log('✅ Forgot password email sent to user:', userEmail);
 
